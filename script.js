@@ -1,11 +1,35 @@
 (() => {
-  // Create and append popover element
-  const quotePopover = document.createElement("div");
-  quotePopover.className =
+  // Create initial small button popover
+  const quoteButton = document.createElement("div");
+  quoteButton.className =
     "fixed bg-white dark:bg-gray-800 rounded-lg shadow-lg p-2 cursor-pointer transform z-50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all";
-  quotePopover.innerHTML = "💬";
-  quotePopover.style.display = "none";
-  document.body.appendChild(quotePopover);
+  quoteButton.innerHTML = "💬";
+  quoteButton.style.display = "none";
+  document.body.appendChild(quoteButton);
+
+  // Create comment interface popover
+  const commentPopover = document.createElement("div");
+  commentPopover.className =
+    "fixed bg-white dark:bg-gray-800 rounded-lg shadow-lg p-3 z-50 border border-gray-200 dark:border-gray-600 min-w-80";
+  commentPopover.style.display = "none";
+  
+  // Create textarea for comment input
+  const commentTextarea = document.createElement("textarea");
+  commentTextarea.className =
+    "w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md resize-none bg-white dark:bg-gray-700 text-black dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500";
+  commentTextarea.placeholder = "Add your comment...";
+  commentTextarea.rows = 3;
+  
+  // Create send button
+  const commentSendButton = document.createElement("button");
+  commentSendButton.className =
+    "mt-2 px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded-md text-sm font-medium transition-colors";
+  commentSendButton.textContent = "Send";
+  
+  // Assemble comment popover
+  commentPopover.appendChild(commentTextarea);
+  commentPopover.appendChild(commentSendButton);
+  document.body.appendChild(commentPopover);
 
   let selectedText = "";
   let isProcessingQuotes = false;
@@ -13,14 +37,19 @@
   // Enhanced quote processing and sending function
   async function processQuotesAndSend(textArea, quoteLabels) {
     try {
-      // Get quotes
+      // Get quotes with comments
       const quotes = Array.from(quoteLabels).map((label) => {
         const quoteElement = label.querySelector("i");
         const fullQuote =
-          quoteElement?.getAttribute("data-full-quote") ||
-          quoteElement?.textContent ||
-          "";
-        return `> ${fullQuote}`;
+          quoteElement?.getAttribute("data-full-quote") || "";
+        const fullComment =
+          quoteElement?.getAttribute("data-full-comment") || "";
+        
+        if (fullComment) {
+          return `> ${fullQuote}\n${fullComment}`;
+        } else {
+          return `> ${fullQuote}`;
+        }
       });
 
       // Combine text
@@ -62,8 +91,8 @@
     }
   }
 
-  // Show quote popover function
-  function showQuotePopover(e) {
+  // Show quote button on text selection
+  function showQuoteButton(e) {
     const selection = window.getSelection();
     const responseBlock = e.target.closest(
       '[data-element-id="response-block"]',
@@ -82,32 +111,75 @@
           const rect = range.getBoundingClientRect();
           const scrollTop =
             window.pageYOffset || document.documentElement.scrollTop;
-          quotePopover.style.left = `${rect.left + rect.width / 2 - 15}px`;
-          quotePopover.style.top = `${scrollTop + rect.top - 50}px`;
-          quotePopover.style.display = "block";
-
-          quotePopover.onclick = () => {
-            addQuoteLabel(selectedText);
-            hideQuotePopover();
-          };
+          quoteButton.style.left = `${rect.left + rect.width / 2 - 15}px`;
+          quoteButton.style.top = `${scrollTop + rect.top - 50}px`;
+          quoteButton.style.display = "block";
         } else {
-          hideQuotePopover();
+          hideQuoteButton();
         }
       }
     }
   }
 
-  function hideQuotePopover() {
-    quotePopover.style.display = "none";
+  // Show comment interface when button is clicked
+  function showCommentInterface() {
+    if (selectedText) {
+      // Get button position before hiding it
+      const rect = quoteButton.getBoundingClientRect();
+      
+      // Hide the button (but don't clear selectedText yet)
+      quoteButton.style.display = "none";
+      
+      // Show comment interface at same position but adjusted for size
+      commentPopover.style.left = `${rect.left - 145}px`; // Center the wider popover
+      commentPopover.style.top = `${rect.top - 70}px`; // Move up to avoid overlap
+      commentPopover.style.display = "block";
+      
+      // Clear previous comment and focus textarea
+      commentTextarea.value = "";
+      commentTextarea.focus();
+    }
+  }
+
+  function hideQuoteButton() {
+    quoteButton.style.display = "none";
     selectedText = "";
   }
 
-  function addQuoteLabel(quote) {
+  function hideCommentPopover() {
+    commentPopover.style.display = "none";
+  }
+  
+  function hideAll() {
+    quoteButton.style.display = "none";
+    hideCommentPopover();
+    selectedText = "";
+  }
+  
+  // Handle comment submission
+  function submitComment() {
+    const comment = commentTextarea.value.trim();
+    addQuoteLabel(selectedText, comment);
+    hideAll();
+  }
+
+  function addQuoteLabel(quote, comment) {
     if (!quote) quote = "text";
+    if (!comment) comment = "";
 
     const originalQuote = quote;
+    const originalComment = comment;
+    
+    // Truncate quote for display
+    let displayQuote = quote;
     if (quote.length > 100) {
-      quote = quote.substring(0, 97) + "...";
+      displayQuote = quote.substring(0, 97) + "...";
+    }
+    
+    // Truncate comment for display  
+    let displayComment = comment;
+    if (comment.length > 150) {
+      displayComment = comment.substring(0, 147) + "...";
     }
 
     const newLabel = document.createElement("div");
@@ -129,7 +201,9 @@
       "error-fallback-gray flex-shrink-0 w-5 h-5 flex items-center justify-center";
 
     const span = document.createElement("span");
-    span.innerHTML = `<i data-full-quote="${originalQuote}">${quote}</i>`;
+    const quotePart = `<strong>Quote:</strong> ${displayQuote}`;
+    const commentPart = displayComment ? `<br/><strong>Comment:</strong> ${displayComment}` : "";
+    span.innerHTML = `<i data-full-quote="${originalQuote}" data-full-comment="${originalComment}">${quotePart}${commentPart}</i>`;
     span.className = "pr-8";
 
     const closeButton = document.createElement("button");
@@ -177,21 +251,39 @@
     }
   }
 
-  // Event Listeners
-  document.addEventListener("mouseup", showQuotePopover);
+  // Event Listeners for quote button
+  quoteButton.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    showCommentInterface();
+  });
+  
+  // Event Listeners for comment interface
+  commentSendButton.addEventListener("click", submitComment);
+  
+  // Handle Enter key in comment textarea
+  commentTextarea.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      submitComment();
+    }
+  });
+  
+  // Main event listeners
+  document.addEventListener("mouseup", showQuoteButton);
   document.addEventListener("mousedown", (e) => {
-    if (!quotePopover.contains(e.target)) {
-      hideQuotePopover();
+    if (!quoteButton.contains(e.target) && !commentPopover.contains(e.target)) {
+      hideAll();
     }
   });
 
   // Enhanced scroll handling
-  window.addEventListener("scroll", hideQuotePopover, true);
+  window.addEventListener("scroll", hideAll, true);
   document.addEventListener(
     "scroll",
     (e) => {
-      if (quotePopover.style.display !== "none") {
-        hideQuotePopover();
+      if (quoteButton.style.display !== "none" || commentPopover.style.display !== "none") {
+        hideAll();
       }
     },
     true,
@@ -201,7 +293,7 @@
     ".overflow-auto, .overflow-y-auto, .overflow-scroll",
   );
   scrollableContainers.forEach((container) => {
-    container.addEventListener("scroll", hideQuotePopover, true);
+    container.addEventListener("scroll", hideAll, true);
   });
 
   // Enhanced keyboard event listener
