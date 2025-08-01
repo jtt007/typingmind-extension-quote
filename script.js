@@ -115,9 +115,9 @@
         const fullComment = spanElement?.getAttribute("data-full-comment") || "";
 
         if (fullComment) {
-          return `> ${fullQuote}\n${fullComment}`;
+          return `> ${fullQuote}\n\nComment: ${fullComment}\n\n---`;
         } else {
-          return `> ${fullQuote}`;
+          return `> ${fullQuote}\n\n---`;
         }
       });
 
