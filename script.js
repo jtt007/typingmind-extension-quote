@@ -16,9 +16,9 @@
   // Create textarea for comment input
   const commentTextarea = document.createElement("textarea");
   commentTextarea.className =
-    "w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md resize-none bg-white dark:bg-gray-700 text-black dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500";
+    "w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md resize-none bg-white dark:bg-gray-700 text-black dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs";
   commentTextarea.placeholder = "Add your comment...";
-  commentTextarea.rows = 3;
+  commentTextarea.rows = 2;
   
   // Create send button
   const commentSendButton = document.createElement("button");
@@ -112,7 +112,7 @@
           const scrollTop =
             window.pageYOffset || document.documentElement.scrollTop;
           quoteButton.style.left = `${rect.left + rect.width / 2 - 15}px`;
-          quoteButton.style.top = `${scrollTop + rect.top - 50}px`;
+          quoteButton.style.top = `${scrollTop + rect.bottom + 10}px`;
           quoteButton.style.display = "block";
         } else {
           hideQuoteButton();
@@ -132,7 +132,7 @@
       
       // Show comment interface at same position but adjusted for size
       commentPopover.style.left = `${rect.left - 145}px`; // Center the wider popover
-      commentPopover.style.top = `${rect.top - 70}px`; // Move up to avoid overlap
+      commentPopover.style.top = `${rect.top}px`; // Same vertical position as button
       commentPopover.style.display = "block";
       
       // Clear previous comment and focus textarea
