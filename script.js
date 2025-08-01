@@ -25,8 +25,10 @@
 
   // Create help text
   const helpText = document.createElement("div");
-  helpText.className = "text-[10px] text-gray-500 dark:text-gray-400 mt-1 leading-tight";
-  helpText.innerHTML = "Esc to close<br/>Enter to send";
+  helpText.className =
+    "text-[10px] text-gray-500 dark:text-gray-400 mt-1 leading-tight";
+  helpText.innerHTML =
+    '<span style="font-weight: 600;">Esc</span> to close<br/><span style="font-weight: 600;">Enter</span> to send';
 
   // Create button container
   const buttonContainer = document.createElement("div");
@@ -131,7 +133,7 @@
           const rect = range.getBoundingClientRect();
           const scrollTop =
             window.pageYOffset || document.documentElement.scrollTop;
-          quoteButton.style.left = `${rect.left + rect.width / 2 - 15}px`;
+          quoteButton.style.left = `${rect.left}px`;
           quoteButton.style.top = `${scrollTop + rect.bottom + 10}px`;
           quoteButton.style.display = "block";
         } else {
@@ -150,8 +152,8 @@
       // Hide the button (but don't clear selectedText yet)
       quoteButton.style.display = "none";
 
-      // Show comment interface at same position but adjusted for size
-      commentPopover.style.left = `${rect.left - 145}px`; // Center the wider popover
+      // Show comment interface aligned with button position
+      commentPopover.style.left = `${rect.left}px`; // Align with button left edge
       commentPopover.style.top = `${rect.top}px`; // Same vertical position as button
       commentPopover.style.display = "block";
 
