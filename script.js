@@ -12,20 +12,26 @@
   commentPopover.className =
     "fixed bg-white dark:bg-gray-800 rounded-lg shadow-lg p-3 z-50 border border-gray-200 dark:border-gray-600 min-w-80";
   commentPopover.style.display = "none";
-  
+
   // Create textarea for comment input
   const commentTextarea = document.createElement("textarea");
   commentTextarea.className =
-    "w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md resize-none bg-white dark:bg-gray-700 text-black dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs overflow-y-auto";
+    "relative font-normal block w-full rounded-md border-0 text-gray-900 placeholder:text-slate-600 dark:placeholder:text-slate-400 min-h-[36px] resize-none bg-transparent dark:text-white main-chat-input focus:ring-0 max-h-[500px] text-xs overflow-y-auto";
   commentTextarea.placeholder = "Add your comment...";
   commentTextarea.rows = 2;
+  commentTextarea.style.padding = "1px";
   commentTextarea.style.maxHeight = "60px"; // Prevent textarea from growing beyond 2 rows
   commentTextarea.style.minHeight = "40px"; // Maintain minimum height
-  
+
+  // Create help text
+  const helpText = document.createElement("div");
+  helpText.className = "text-[10px] text-gray-500 dark:text-gray-400 mt-1 leading-tight";
+  helpText.innerHTML = "Esc to close<br/>Enter to send";
+
   // Create button container
   const buttonContainer = document.createElement("div");
-  buttonContainer.className = "flex justify-end mt-2";
-  
+  buttonContainer.className = "flex justify-between items-end mt-2";
+
   // Create send button
   const commentSendButton = document.createElement("button");
   commentSendButton.className =
@@ -36,10 +42,11 @@
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
     </svg>
   `;
-  
+
   // Assemble button container
+  buttonContainer.appendChild(helpText);
   buttonContainer.appendChild(commentSendButton);
-  
+
   // Assemble comment popover
   commentPopover.appendChild(commentTextarea);
   commentPopover.appendChild(buttonContainer);
@@ -54,11 +61,10 @@
       // Get quotes with comments
       const quotes = Array.from(quoteLabels).map((label) => {
         const quoteElement = label.querySelector("i");
-        const fullQuote =
-          quoteElement?.getAttribute("data-full-quote") || "";
+        const fullQuote = quoteElement?.getAttribute("data-full-quote") || "";
         const fullComment =
           quoteElement?.getAttribute("data-full-comment") || "";
-        
+
         if (fullComment) {
           return `> ${fullQuote}\n${fullComment}`;
         } else {
@@ -140,15 +146,15 @@
     if (selectedText) {
       // Get button position before hiding it
       const rect = quoteButton.getBoundingClientRect();
-      
+
       // Hide the button (but don't clear selectedText yet)
       quoteButton.style.display = "none";
-      
+
       // Show comment interface at same position but adjusted for size
       commentPopover.style.left = `${rect.left - 145}px`; // Center the wider popover
       commentPopover.style.top = `${rect.top}px`; // Same vertical position as button
       commentPopover.style.display = "block";
-      
+
       // Clear previous comment and focus textarea
       commentTextarea.value = "";
       commentTextarea.focus();
@@ -163,13 +169,13 @@
   function hideCommentPopover() {
     commentPopover.style.display = "none";
   }
-  
+
   function hideAll() {
     quoteButton.style.display = "none";
     hideCommentPopover();
     selectedText = "";
   }
-  
+
   // Handle comment submission
   function submitComment() {
     const comment = commentTextarea.value.trim();
@@ -183,14 +189,14 @@
 
     const originalQuote = quote;
     const originalComment = comment;
-    
+
     // Truncate quote for display
     let displayQuote = quote;
     if (quote.length > 100) {
       displayQuote = quote.substring(0, 97) + "...";
     }
-    
-    // Truncate comment for display  
+
+    // Truncate comment for display
     let displayComment = comment;
     if (comment.length > 150) {
       displayComment = comment.substring(0, 147) + "...";
@@ -216,7 +222,9 @@
 
     const span = document.createElement("span");
     const quotePart = `<strong>Quote:</strong> ${displayQuote}`;
-    const commentPart = displayComment ? `<br/><strong>Comment:</strong> ${displayComment}` : "";
+    const commentPart = displayComment
+      ? `<br/><strong>Comment:</strong> ${displayComment}`
+      : "";
     span.innerHTML = `<i data-full-quote="${originalQuote}" data-full-comment="${originalComment}">${quotePart}${commentPart}</i>`;
     span.className = "pr-8";
 
@@ -271,18 +279,21 @@
     e.stopPropagation();
     showCommentInterface();
   });
-  
+
   // Event Listeners for comment interface
   commentSendButton.addEventListener("click", submitComment);
-  
-  // Handle Enter key in comment textarea
+
+  // Handle Enter and Esc keys in comment textarea
   commentTextarea.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       submitComment();
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      hideAll();
     }
   });
-  
+
   // Main event listeners
   document.addEventListener("mouseup", showQuoteButton);
   document.addEventListener("mousedown", (e) => {
@@ -292,13 +303,17 @@
   });
 
   // Enhanced scroll handling
-  window.addEventListener("scroll", (e) => {
-    // Don't hide on textarea scroll
-    if (e.target === commentTextarea) {
-      return;
-    }
-    hideAll();
-  }, true);
+  window.addEventListener(
+    "scroll",
+    (e) => {
+      // Don't hide on textarea scroll
+      if (e.target === commentTextarea) {
+        return;
+      }
+      hideAll();
+    },
+    true,
+  );
   document.addEventListener(
     "scroll",
     (e) => {
@@ -306,7 +321,10 @@
       if (e.target === commentTextarea) {
         return;
       }
-      if (quoteButton.style.display !== "none" || commentPopover.style.display !== "none") {
+      if (
+        quoteButton.style.display !== "none" ||
+        commentPopover.style.display !== "none"
+      ) {
         hideAll();
       }
     },
@@ -317,13 +335,17 @@
     ".overflow-auto, .overflow-y-auto, .overflow-scroll",
   );
   scrollableContainers.forEach((container) => {
-    container.addEventListener("scroll", (e) => {
-      // Don't hide on textarea scroll
-      if (e.target === commentTextarea) {
-        return;
-      }
-      hideAll();
-    }, true);
+    container.addEventListener(
+      "scroll",
+      (e) => {
+        // Don't hide on textarea scroll
+        if (e.target === commentTextarea) {
+          return;
+        }
+        hideAll();
+      },
+      true,
+    );
   });
 
   // Enhanced keyboard event listener
