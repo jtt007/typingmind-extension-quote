@@ -55,7 +55,53 @@
   document.body.appendChild(commentPopover);
 
   let selectedText = "";
+  let selectedRange = null;
+  let highlightedElement = null;
   let isProcessingQuotes = false;
+
+  // Function to highlight selected text using overlay
+  function highlightSelection(range) {
+    try {
+      // Remove any existing highlight
+      removeHighlight();
+      
+      // Get the bounding rectangle of the selection
+      const rect = range.getBoundingClientRect();
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+      
+      // Create highlight overlay
+      const highlightOverlay = document.createElement("div");
+      highlightOverlay.style.position = "absolute";
+      highlightOverlay.style.left = `${rect.left + scrollLeft}px`;
+      highlightOverlay.style.top = `${rect.top + scrollTop}px`;
+      highlightOverlay.style.width = `${rect.width}px`;
+      highlightOverlay.style.height = `${rect.height}px`;
+      highlightOverlay.style.backgroundColor = "rgba(59, 130, 246, 0.3)";
+      highlightOverlay.style.borderRadius = "2px";
+      highlightOverlay.style.pointerEvents = "none";
+      highlightOverlay.style.zIndex = "10";
+      highlightOverlay.style.transition = "opacity 0.2s ease";
+      highlightOverlay.setAttribute("data-quote-highlight", "true");
+      
+      // Add to body
+      document.body.appendChild(highlightOverlay);
+      highlightedElement = highlightOverlay;
+      
+      return true;
+    } catch (error) {
+      console.warn("Could not highlight selection:", error);
+      return false;
+    }
+  }
+
+  // Function to remove highlight
+  function removeHighlight() {
+    if (highlightedElement && highlightedElement.parentNode) {
+      highlightedElement.parentNode.removeChild(highlightedElement);
+      highlightedElement = null;
+    }
+  }
 
   // Enhanced quote processing and sending function
   async function processQuotesAndSend(textArea, quoteLabels) {
@@ -130,6 +176,9 @@
       if (container === responseBlock) {
         selectedText = selection.toString().trim();
         if (selectedText) {
+          // Store the selection range
+          selectedRange = range.cloneRange();
+          
           const rect = range.getBoundingClientRect();
           const scrollTop =
             window.pageYOffset || document.documentElement.scrollTop;
@@ -145,12 +194,15 @@
 
   // Show comment interface when button is clicked
   function showCommentInterface() {
-    if (selectedText) {
+    if (selectedText && selectedRange) {
       // Get button position before hiding it
       const rect = quoteButton.getBoundingClientRect();
 
       // Hide the button (but don't clear selectedText yet)
       quoteButton.style.display = "none";
+
+      // Highlight the selected text
+      highlightSelection(selectedRange);
 
       // Show comment interface aligned with button position
       commentPopover.style.left = `${rect.left}px`; // Align with button left edge
@@ -166,16 +218,21 @@
   function hideQuoteButton() {
     quoteButton.style.display = "none";
     selectedText = "";
+    selectedRange = null;
+    removeHighlight();
   }
 
   function hideCommentPopover() {
     commentPopover.style.display = "none";
+    removeHighlight();
   }
 
   function hideAll() {
     quoteButton.style.display = "none";
     hideCommentPopover();
     selectedText = "";
+    selectedRange = null;
+    removeHighlight();
   }
 
   // Handle comment submission
