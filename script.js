@@ -17,7 +17,7 @@
   const commentTextarea = document.createElement("textarea");
   commentTextarea.className =
     "relative font-normal block w-full rounded-md border-0 text-gray-900 placeholder:text-slate-600 dark:placeholder:text-slate-400 min-h-[36px] resize-none bg-transparent dark:text-white main-chat-input focus:ring-0 max-h-[500px] text-xs overflow-y-auto";
-  commentTextarea.placeholder = "Add your comment...";
+  commentTextarea.placeholder = "Comment or leave blank";
   commentTextarea.rows = 2;
   commentTextarea.style.padding = "1px";
   commentTextarea.style.maxHeight = "60px"; // Prevent textarea from growing beyond 2 rows
@@ -112,7 +112,8 @@
       const quotes = Array.from(quoteLabels).map((label) => {
         const spanElement = label.querySelector("span[data-full-quote]");
         const fullQuote = spanElement?.getAttribute("data-full-quote") || "";
-        const fullComment = spanElement?.getAttribute("data-full-comment") || "";
+        const fullComment =
+          spanElement?.getAttribute("data-full-comment") || "";
 
         if (fullComment) {
           return `> ${fullQuote}\n\nComment: ${fullComment}\n\n---`;
