@@ -64,12 +64,14 @@
     try {
       // Remove any existing highlight
       removeHighlight();
-      
+
       // Get the bounding rectangle of the selection
       const rect = range.getBoundingClientRect();
-      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-      const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
-      
+      const scrollTop =
+        window.pageYOffset || document.documentElement.scrollTop;
+      const scrollLeft =
+        window.pageXOffset || document.documentElement.scrollLeft;
+
       // Create highlight overlay
       const highlightOverlay = document.createElement("div");
       highlightOverlay.style.position = "absolute";
@@ -83,11 +85,11 @@
       highlightOverlay.style.zIndex = "10";
       highlightOverlay.style.transition = "opacity 0.2s ease";
       highlightOverlay.setAttribute("data-quote-highlight", "true");
-      
+
       // Add to body
       document.body.appendChild(highlightOverlay);
       highlightedElement = highlightOverlay;
-      
+
       return true;
     } catch (error) {
       console.warn("Could not highlight selection:", error);
@@ -108,10 +110,9 @@
     try {
       // Get quotes with comments
       const quotes = Array.from(quoteLabels).map((label) => {
-        const quoteElement = label.querySelector("i");
-        const fullQuote = quoteElement?.getAttribute("data-full-quote") || "";
-        const fullComment =
-          quoteElement?.getAttribute("data-full-comment") || "";
+        const spanElement = label.querySelector("span[data-full-quote]");
+        const fullQuote = spanElement?.getAttribute("data-full-quote") || "";
+        const fullComment = spanElement?.getAttribute("data-full-comment") || "";
 
         if (fullComment) {
           return `> ${fullQuote}\n${fullComment}`;
@@ -178,7 +179,7 @@
         if (selectedText) {
           // Store the selection range
           selectedRange = range.cloneRange();
-          
+
           const rect = range.getBoundingClientRect();
           const scrollTop =
             window.pageYOffset || document.documentElement.scrollTop;
@@ -280,12 +281,13 @@
       "error-fallback-gray flex-shrink-0 w-5 h-5 flex items-center justify-center";
 
     const span = document.createElement("span");
-    const quotePart = `<strong>Quote:</strong> ${displayQuote}`;
-    const commentPart = displayComment
-      ? `<br/><strong>Comment:</strong> ${displayComment}`
-      : "";
-    span.innerHTML = `<i data-full-quote="${originalQuote}" data-full-comment="${originalComment}">${quotePart}${commentPart}</i>`;
-    span.className = "pr-8";
+    span.setAttribute("data-full-quote", originalQuote);
+    span.setAttribute("data-full-comment", originalComment);
+
+    const quoteWithGuillemets = `«${displayQuote}»`;
+    const commentPart = displayComment ? `<br/>⤷ ${displayComment}` : "";
+    span.innerHTML = `<i>${quoteWithGuillemets}</i>${commentPart}`;
+    span.className = "pr-8 text-xs leading-tight";
 
     const closeButton = document.createElement("button");
     closeButton.className =
