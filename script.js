@@ -22,15 +22,27 @@
   commentTextarea.style.maxHeight = "60px"; // Prevent textarea from growing beyond 2 rows
   commentTextarea.style.minHeight = "40px"; // Maintain minimum height
   
+  // Create button container
+  const buttonContainer = document.createElement("div");
+  buttonContainer.className = "flex justify-end mt-2";
+  
   // Create send button
   const commentSendButton = document.createElement("button");
   commentSendButton.className =
-    "mt-2 px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded-md text-sm font-medium transition-colors";
-  commentSendButton.textContent = "Send";
+    "w-6 h-6 bg-blue-500 hover:bg-blue-600 text-white rounded-full transition-colors flex items-center justify-center";
+  commentSendButton.title = "Prepend to next message";
+  commentSendButton.innerHTML = `
+    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+    </svg>
+  `;
+  
+  // Assemble button container
+  buttonContainer.appendChild(commentSendButton);
   
   // Assemble comment popover
   commentPopover.appendChild(commentTextarea);
-  commentPopover.appendChild(commentSendButton);
+  commentPopover.appendChild(buttonContainer);
   document.body.appendChild(commentPopover);
 
   let selectedText = "";
