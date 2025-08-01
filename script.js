@@ -16,9 +16,11 @@
   // Create textarea for comment input
   const commentTextarea = document.createElement("textarea");
   commentTextarea.className =
-    "w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md resize-none bg-white dark:bg-gray-700 text-black dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs";
+    "w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md resize-none bg-white dark:bg-gray-700 text-black dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs overflow-y-auto";
   commentTextarea.placeholder = "Add your comment...";
   commentTextarea.rows = 2;
+  commentTextarea.style.maxHeight = "60px"; // Prevent textarea from growing beyond 2 rows
+  commentTextarea.style.minHeight = "40px"; // Maintain minimum height
   
   // Create send button
   const commentSendButton = document.createElement("button");
@@ -278,10 +280,20 @@
   });
 
   // Enhanced scroll handling
-  window.addEventListener("scroll", hideAll, true);
+  window.addEventListener("scroll", (e) => {
+    // Don't hide on textarea scroll
+    if (e.target === commentTextarea) {
+      return;
+    }
+    hideAll();
+  }, true);
   document.addEventListener(
     "scroll",
     (e) => {
+      // Don't hide on textarea scroll
+      if (e.target === commentTextarea) {
+        return;
+      }
       if (quoteButton.style.display !== "none" || commentPopover.style.display !== "none") {
         hideAll();
       }
@@ -293,7 +305,13 @@
     ".overflow-auto, .overflow-y-auto, .overflow-scroll",
   );
   scrollableContainers.forEach((container) => {
-    container.addEventListener("scroll", hideAll, true);
+    container.addEventListener("scroll", (e) => {
+      // Don't hide on textarea scroll
+      if (e.target === commentTextarea) {
+        return;
+      }
+      hideAll();
+    }, true);
   });
 
   // Enhanced keyboard event listener
