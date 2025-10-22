@@ -44,11 +44,20 @@
   // === Variables ===
   let selectedText = "";
   let selectedRange = null;
+  let isPopoverOpen = false;
 
   // === Helpers ===
   const hideAll = () => {
+    if (isPopoverOpen) return; // don't hide if editing
     quoteButton.style.display = "none";
     commentPopover.style.display = "none";
+  };
+
+  const closePopover = () => {
+    commentPopover.style.display = "none";
+    isPopoverOpen = false;
+    selectedText = "";
+    selectedRange = null;
   };
 
   const getSelectionRect = () => {
@@ -65,7 +74,6 @@
     const rect = getSelectionRect();
     const sel = window.getSelection();
     if (!rect || !sel || sel.isCollapsed) {
-      hideAll();
       return;
     }
     selectedText = sel.toString().trim();
@@ -80,8 +88,9 @@
   // Desktop mouse and mobile touch triggers
   document.addEventListener("mouseup", showQuoteButton);
   document.addEventListener("touchend", () => setTimeout(showQuoteButton, 50));
+
   document.addEventListener("selectionchange", () => {
-    // Fallback for Android Chrome where mouseup/touchend may not fire
+    if (isPopoverOpen) return; // don't auto-hide while editing
     const sel = window.getSelection();
     if (sel && !sel.isCollapsed && sel.toString().trim().length > 0) {
       showQuoteButton();
@@ -95,8 +104,9 @@
     commentPopover.style.left = `${rect.left}px`;
     commentPopover.style.top = `${rect.bottom + window.scrollY + 5}px`;
     commentPopover.style.display = "block";
+    isPopoverOpen = true;
     commentTextarea.value = "";
-    commentTextarea.focus();
+    setTimeout(() => commentTextarea.focus(), 100);
   });
 
   // === Submit Comment ===
@@ -114,7 +124,8 @@
 
   sendBtn.addEventListener("click", () => {
     addQuoteLabel(selectedText, commentTextarea.value.trim());
-    hideAll();
+    closePopover();
+    quoteButton.style.display = "none";
   });
 
   commentTextarea.addEventListener("keydown", (e) => {
@@ -122,9 +133,30 @@
       e.preventDefault();
       sendBtn.click();
     } else if (e.key === "Escape") {
+      closePopover();
+    }
+  });
+
+  // Prevent closing when clicking inside popover or quote button
+  document.addEventListener("mousedown", (e) => {
+    if (commentPopover.contains(e.target) || quoteButton.contains(e.target)) return;
+    if (isPopoverOpen) {
+      closePopover();
+    } else {
       hideAll();
     }
   });
 
-  document.addEventListener("scroll", hideAll, true);
+  document.addEventListener("touchstart", (e) => {
+    if (commentPopover.contains(e.target) || quoteButton.contains(e.target)) return;
+    if (isPopoverOpen) {
+      closePopover();
+    } else {
+      hideAll();
+    }
+  });
+
+  document.addEventListener("scroll", () => {
+    if (!isPopoverOpen) hideAll();
+  }, true);
 })();
